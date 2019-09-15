@@ -1,4 +1,4 @@
-from W4111_F19_HW1.src.BaseDataTable import BaseDataTable
+from src.BaseDataTable import BaseDataTable
 import pymysql
 
 class RDBDataTable(BaseDataTable):
@@ -15,7 +15,20 @@ class RDBDataTable(BaseDataTable):
         :param connect_info: Dictionary of parameters necessary to connect to the data.
         :param key_columns: List, in order, of the columns (fields) that comprise the primary key.
         """
-        pass
+        self._data = {
+            "table_name": table_name,
+            "connect_info": connect_info,
+            "key_columns": key_columns
+        }
+
+        h = connect_info["host"]
+        u = connect_info["user"]
+        p = connect_info["password"]
+        d = connect_info["db"]
+        c = connect_info["charset"]
+
+        self._db = pymysql.connect(host = h, user = u, password = p, db = d, charset = c)
+        self._dbcur = self._db.cursor()
 
     def find_by_primary_key(self, key_fields, field_list=None):
         """
@@ -38,7 +51,55 @@ class RDBDataTable(BaseDataTable):
         :return: A list containing dictionaries. A dictionary is in the list representing each record
             that matches the template. The dictionary only contains the requested fields.
         """
-        pass
+        table_name = "people"
+        sql = self.create_select(table_name,template,field_list)
+        print(sql)
+        res = self._dbcur.execute(sql)
+        return self._dbcur.fetchall()
+
+    def template_to_where_clause(self, template):
+        """
+
+        :param template: One of those weird templates
+        :return: WHERE clause corresponding to the template.
+        """
+
+        if template is None or template == {}:
+            result = (None, None)
+        else:
+            args = []
+            terms = []
+
+            for k, v in template.items():
+                terms.append(" " + k + f"=\'{v}\' ")
+
+            w_clause = "AND".join(terms)
+            w_clause = " WHERE " + w_clause
+        return w_clause
+
+    def create_select(self, table_name, template, fields, order_by=None, limit=None, offset=None):
+        """
+        Produce a select statement: sql string and args.
+
+        :param table_name: Table name: May be fully qualified dbname.tablename or just tablename.
+        :param fields: Columns to select (an array of column name)
+        :param template: One of Don Ferguson's weird JSON/python dictionary templates.
+        :param order_by: Ignore for now.
+        :param limit: Ignore for now.
+        :param offset: Ignore for now.
+        :return: sql string
+        """
+
+        if fields is None:
+            field_list = " * "
+        else:
+            field_list = " " + ",".join(fields) + " "
+
+        w_clause = self.template_to_where_clause(template)
+
+        sql = "select " + field_list + " from " + table_name + " " + w_clause
+
+        return sql
 
     def delete_by_key(self, key_fields):
         """

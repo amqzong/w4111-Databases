@@ -25,6 +25,8 @@ class CSVDataTable(BaseDataTable):
         :param table_name: Logical name of the table.
         :param connect_info: Dictionary of parameters necessary to connect to the data.
         :param key_columns: List, in order, of the columns (fields) that comprise the primary key.
+
+
         """
         self._data = {
             "table_name": table_name,
@@ -35,7 +37,8 @@ class CSVDataTable(BaseDataTable):
 
         self._logger = logging.getLogger()
 
-        self._logger.debug("CSVDataTable.__init__: data = " + json.dumps(self._data, indent=2))
+        # NOTE: commented out for now because cannot convert key columns (a dictionary) to json
+        #self._logger.debug("CSVDataTable.__init__: data = " + json.dumps(self._data, indent=2))
 
         if rows is not None:
             self._rows = copy.copy(rows)
@@ -44,6 +47,7 @@ class CSVDataTable(BaseDataTable):
             self._load()
 
     def __str__(self):
+    # toString method
 
         result = "CSVDataTable: config data = \n" + json.dumps(self._data, indent=2)
 
@@ -51,6 +55,7 @@ class CSVDataTable(BaseDataTable):
         if no_rows <= CSVDataTable._rows_to_print:
             rows_to_print = self._rows[0:no_rows]
         else:
+            # shows first 5 lines and last 5 lines
             temp_r = int(CSVDataTable._rows_to_print / 2)
             rows_to_print = self._rows[0:temp_r]
             keys = self._rows[0].keys()
@@ -112,7 +117,8 @@ class CSVDataTable(BaseDataTable):
         :return: None, or a dictionary containing the requested fields for the record identified
             by the key.
         """
-        pass
+        tmp = self.key_to_template(key_fields)
+        return self.find_by_template(tmp, field_list)
 
     def find_by_template(self, template, field_list=None, limit=None, offset=None, order_by=None):
         """
@@ -125,7 +131,25 @@ class CSVDataTable(BaseDataTable):
         :return: A list containing dictionaries. A dictionary is in the list representing each record
             that matches the template. The dictionary only contains the requested fields.
         """
-        pass
+        result = []
+        for r in self._rows:
+            if self.matches_template(r,template):
+                d = {}
+                if field_list is not None:
+                    for f in field_list:
+                        d[f] = r.get(f)
+                else:
+                    d = r
+                result.append(d)
+        return result
+
+    def key_to_template(self,key):
+        tmp = {}
+        i = 0
+        for col in self._data["key_columns"]:
+            tmp[col] = key[i]
+            i+=1
+        return tmp
 
     def delete_by_key(self, key_fields):
         """
@@ -135,15 +159,20 @@ class CSVDataTable(BaseDataTable):
         :param template: A template.
         :return: A count of the rows deleted.
         """
-        pass
+        tmp = self.key_to_template(key_fields)
+        return self.delete_by_template(tmp)
 
     def delete_by_template(self, template):
         """
-
         :param template: Template to determine rows to delete.
         :return: Number of rows deleted.
         """
-        pass
+
+        full_tmp = self.find_by_template(template,None)
+        for r in full_tmp:
+            self._rows.remove(r)
+        return len(full_tmp)
+        #NOTE: maybe also delete from CSV
 
     def update_by_key(self, key_fields, new_values):
         """
@@ -152,6 +181,8 @@ class CSVDataTable(BaseDataTable):
         :param new_values: A dict of field:value to set for updated row.
         :return: Number of rows updated.
         """
+        tmp = self.key_to_template(key_fields)
+        return self.update_by_template(tmp, new_values)
 
     def update_by_template(self, template, new_values):
         """
@@ -160,7 +191,15 @@ class CSVDataTable(BaseDataTable):
         :param new_values: New values to set for matching fields.
         :return: Number of rows updated.
         """
-        pass
+        count = 0
+        for r in self._rows:
+            if self.matches_template(r, template):
+                # QUESTION: since this works, this means that r is a reference not a copy?
+                for f in new_values.keys():
+                    r[f] = new_values[f]
+                print(r)
+                count += 1
+        return count
 
     def insert(self, new_record):
         """
@@ -168,7 +207,8 @@ class CSVDataTable(BaseDataTable):
         :param new_record: A dictionary representing a row to add to the set of records.
         :return: None
         """
-        pass
+        self._rows.append(new_record)
+        return None
 
     def get_rows(self):
         return self._rows
