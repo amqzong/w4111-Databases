@@ -139,7 +139,8 @@ class RDBDataTable(BaseDataTable):
         :param template: A template.
         :return: A count of the rows deleted.
         """
-        pass
+        tmp = self.key_to_template(key_fields)
+        return self.delete_by_template(tmp)
 
     def delete_by_template(self, template):
         """
@@ -159,7 +160,8 @@ class RDBDataTable(BaseDataTable):
         :param new_values: A dict of field:value to set for updated row.
         :return: Number of rows updated.
         """
-        pass
+        tmp = self.key_to_template(key_fields)
+        return self.update_by_template(tmp, new_values)
 
     def update_by_template(self, template, new_values):
         """

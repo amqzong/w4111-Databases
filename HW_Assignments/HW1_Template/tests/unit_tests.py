@@ -157,21 +157,26 @@ def t_rdb_findbytmp():
 
     print(json.dumps(rdb_tbl.find_by_template(tmp, fields), indent=2))
 
-# def t_rdb_findbyprim():
-#     connect_info = {
-#         "host": "localhost",
-#         "user": "root",
-#         "password": "Databases",
-#         "db": "w4111",
-#         "charset": "utf8mb4"
-#     }
-#     db = pymysql.connect(host="localhost", user="root", password="Databases", db="w4111", charset="utf8mb4")
-#     dbcur = db.cursor()
-#     sql = "SHOW KEYS FROM people WHERE Key_name = 'PRIMARY'"
-#     dbcur.execute(sql)
-#     print(dbcur.fetchall())
-#
-#     #rdb_tbl = RDBDataTable("people", connect_info, key_columns=["playerID", "nameLast", "nameFirst"])
+def t_rdb_findbykey():
+    connect_info = {
+        "host": "localhost",
+        "user": "root",
+        "password": "Databases",
+        "db": "w4111",
+        "charset": "utf8mb4"
+    }
+    # db = pymysql.connect(host="localhost", user="root", password="Databases", db="w4111", charset="utf8mb4")
+    # dbcur = db.cursor()
+    # sql = "SHOW KEYS FROM people WHERE Key_name = 'PRIMARY'"
+    # dbcur.execute(sql)
+    # print(dbcur.fetchall())
+
+    k = ["willite01"]
+    fields = {
+        "playerID", "nameLast", "nameFirst"
+    }
+    rdb_tbl = RDBDataTable("people", connect_info, key_columns=["playerID"])
+    print(rdb_tbl.find_by_primary_key(k,fields))
 
 def t_rdb_delbytmp():
     connect_info = {
@@ -190,6 +195,20 @@ def t_rdb_delbytmp():
     }
 
     print(rdb_tbl.delete_by_template(tmp))
+
+def t_rdb_delbykey():
+    connect_info = {
+        "host": "localhost",
+        "user": "root",
+        "password": "Databases",
+        "db": "w4111",
+        "charset": "utf8mb4"
+    }
+
+    k = ["willite01"]
+
+    rdb_tbl = RDBDataTable("people", connect_info, key_columns=["playerID"])
+    print(rdb_tbl.delete_by_key(k))
 
 def t_rdb_insert():
     connect_info = {
@@ -233,6 +252,26 @@ def t_rdb_updbytmp():
     rdb_tbl.insert(tmp)
     print(rdb_tbl.update_by_template(tmp, new_values))
 
+def t_rdb_updbykey():
+
+    connect_info = {
+        "host": "localhost",
+        "user": "root",
+        "password": "Databases",
+        "db": "w4111",
+        "charset": "utf8mb4"
+    }
+
+    rdb_tbl = RDBDataTable("people", connect_info, key_columns=["playerID"])
+
+    k = ["willite01"]
+
+    new_values = {
+        "nameLast": "Zong",
+        "birthYear": "1999"
+    }
+    print(rdb_tbl.update_by_key(k, new_values))
+
 #t_csv_load()
 #t_csv_match()
 #t_csv_matchall()
@@ -243,7 +282,9 @@ def t_rdb_updbytmp():
 #t_csv_updbykey()
 #t_csv_insert()
 #t_rdb_findbytmp()
-#t_rdb_findbyprim()
+#t_rdb_findbykey()
 #t_rdb_delbytmp()
+#t_rdb_delbykey()
 #t_rdb_insert()
-t_rdb_updbytmp()
+#t_rdb_updbytmp()
+t_rdb_updbykey()
