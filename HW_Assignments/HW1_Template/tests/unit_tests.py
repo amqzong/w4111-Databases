@@ -136,7 +136,7 @@ def t_rdb_load():
 
     rdb_tbl = RDBDataTable("people",connect_info,None)
 
-def t_rdb_primtmp():
+def t_rdb_findbytmp():
     connect_info = {
         "host": "localhost",
         "user": "root",
@@ -157,12 +157,81 @@ def t_rdb_primtmp():
 
     print(json.dumps(rdb_tbl.find_by_template(tmp, fields), indent=2))
 
-# sql = "select playerID, nameLast, nameFirst, birthCity, birthState, birthYear from People where birthCity='San Diego' " + \
-# "and nameLast='Williams'"
-# cur = default_cnx.cursor()
-# res = cur.execute(sql)
-# people_info = cur.fetchall()
-# print("The relevant people are: \n", json.dumps(people_info, indent=2))
+# def t_rdb_findbyprim():
+#     connect_info = {
+#         "host": "localhost",
+#         "user": "root",
+#         "password": "Databases",
+#         "db": "w4111",
+#         "charset": "utf8mb4"
+#     }
+#     db = pymysql.connect(host="localhost", user="root", password="Databases", db="w4111", charset="utf8mb4")
+#     dbcur = db.cursor()
+#     sql = "SHOW KEYS FROM people WHERE Key_name = 'PRIMARY'"
+#     dbcur.execute(sql)
+#     print(dbcur.fetchall())
+#
+#     #rdb_tbl = RDBDataTable("people", connect_info, key_columns=["playerID", "nameLast", "nameFirst"])
+
+def t_rdb_delbytmp():
+    connect_info = {
+        "host": "localhost",
+        "user": "root",
+        "password": "Databases",
+        "db": "w4111",
+        "charset": "utf8mb4"
+    }
+
+    rdb_tbl = RDBDataTable("people", connect_info, None)
+
+    tmp = {
+        "nameFirst": "Ted",
+        "nameLast": "Williams"
+    }
+
+    print(rdb_tbl.delete_by_template(tmp))
+
+def t_rdb_insert():
+    connect_info = {
+        "host": "localhost",
+        "user": "root",
+        "password": "Databases",
+        "db": "w4111",
+        "charset": "utf8mb4"
+    }
+
+    rdb_tbl = RDBDataTable("people", connect_info, None)
+
+    tmp = {
+        "nameFirst": "Amanda",
+        "nameLast": "Zong"
+    }
+
+    rdb_tbl.insert(tmp)
+
+def t_rdb_updbytmp():
+
+    connect_info = {
+        "host": "localhost",
+        "user": "root",
+        "password": "Databases",
+        "db": "w4111",
+        "charset": "utf8mb4"
+    }
+
+    rdb_tbl = RDBDataTable("people", connect_info, None)
+
+    tmp = {
+        "nameFirst": "Amanda",
+        "nameLast": "Zong"
+    }
+
+    new_values = {
+        "playerID": "amz2136",
+        "birthYear": "1999"
+    }
+    rdb_tbl.insert(tmp)
+    print(rdb_tbl.update_by_template(tmp, new_values))
 
 #t_csv_load()
 #t_csv_match()
@@ -173,4 +242,8 @@ def t_rdb_primtmp():
 #t_csv_updbytmp()
 #t_csv_updbykey()
 #t_csv_insert()
-t_rdb_primtmp()
+#t_rdb_findbytmp()
+#t_rdb_findbyprim()
+#t_rdb_delbytmp()
+#t_rdb_insert()
+t_rdb_updbytmp()
