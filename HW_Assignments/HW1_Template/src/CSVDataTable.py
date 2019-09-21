@@ -86,8 +86,30 @@ class CSVDataTable(BaseDataTable):
 
         with open(full_name, "r") as txt_file:
             csv_d_rdr = csv.DictReader(txt_file)
+
             for r in csv_d_rdr:
                 self._add_row(r)
+
+        #print(self._rows[0].get("playerID"))
+
+
+        dict = {}
+        for i in range(0,1):#len(self._rows)):
+            r = self._rows[i]
+            print(r.keys())
+            t = ()
+            if self._data["key_columns"] is not None:
+                for key in self._data["key_columns"]:
+                    if not r[key]:
+                        print(r)
+                        raise Exception("Null key")
+                    t += (r.get(key),)
+
+                if t in dict.keys():
+                    print(t)
+                    raise Exception("Duplicate key.")
+
+            dict[t] = True
 
         self._logger.debug("CSVDataTable._load: Loaded " + str(len(self._rows)) + " rows")
 
@@ -191,10 +213,18 @@ class CSVDataTable(BaseDataTable):
         :param new_values: New values to set for matching fields.
         :return: Number of rows updated.
         """
+        for k_p in self._data["key_columns"]:
+            for k_tmp in new_values.keys():
+                if k_tmp == k_p and self.find_by_template({k_tmp:new_values[k_tmp]}):
+                    print(self.find_by_template({k_tmp:new_values[k_tmp]}))
+                    raise Exception("Duplicate key.")
+                if k_tmp == k_p and not new_values[k_tmp]:
+                    raise Exception("Cannot change primary key to null.")
+
         count = 0
         for r in self._rows:
             if self.matches_template(r, template):
-                # QUESTION: since this works, this means that r is a reference not a copy?
+                # since this works, this means that r is a reference not a copy?
                 for f in new_values.keys():
                     r[f] = new_values[f]
                 print(r)
@@ -207,6 +237,16 @@ class CSVDataTable(BaseDataTable):
         :param new_record: A dictionary representing a row to add to the set of records.
         :return: None
         """
+        for k_p in self._data["key_columns"]:
+            found = False
+            for k_tmp in new_record.keys():
+                if k_tmp == k_p and self.find_by_template({k_tmp:new_record[k_tmp]}):
+                    raise Exception("Duplicate key.")
+                if k_tmp == k_p:
+                    found = True
+            if (found is not True):
+                raise Exception("Cannot insert new record without primary key.")
+
         self._rows.append(new_record)
         return None
 

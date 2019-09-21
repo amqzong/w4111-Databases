@@ -28,7 +28,7 @@ def t_csv_load():
         "file_name": "People.csv"
     }
 
-    csv_tbl = CSVDataTable("people", connect_info, None)
+    csv_tbl = CSVDataTable("people", connect_info, key_columns=None)
 
     print("Created table = " + str(csv_tbl))
 
@@ -38,7 +38,7 @@ def t_csv_match():
     result = CSVDataTable.matches_template(row,t)
     print(result)
 
-def t_csv_matchall():
+def t_csv_findbytmp():
     tmp = {"playerID":"willite01","nameLast":"Williams","nameFirst":"Ted"}
     connect_info = {
         "directory": data_dir,
@@ -122,6 +122,114 @@ def t_csv_insert():
 
     result = csv_tbl.find_by_template(new_values)
     print(json.dumps(result, indent=2))
+
+#Test CSV exceptions
+
+# Raise exception when one of primary key columns is null
+def t_csv_e1():
+
+    connect_info = {
+        "directory": data_dir,
+        "file_name": "AllstarFull_AZ.csv"
+    }
+
+    csv_tbl = CSVDataTable("people", connect_info, key_columns=["startingPos"])
+
+    print("Created table = " + str(csv_tbl))
+
+# Raise exception when primary key is not unique for each row
+def t_csv_e2():
+
+    connect_info = {
+        "directory": data_dir,
+        "file_name": "AllstarFull_AZ.csv"
+    }
+
+    csv_tbl = CSVDataTable("people", connect_info, key_columns=["yearID"])
+
+    print("Created table = " + str(csv_tbl))
+
+# Should work fine when primary key is unique (but a column in primary key may not be unique)
+def t_csv_e3():
+
+    connect_info = {
+        "directory": data_dir,
+        "file_name": "AllstarFull_AZ.csv"
+    }
+
+    csv_tbl = CSVDataTable("people", connect_info, key_columns=["yearID", "playerID"])
+
+
+    print("Created table = " + str(csv_tbl))
+
+# When you delete one row that matches template, other rows should be fine
+def t_csv_e4():
+    connect_info = {
+        "directory": data_dir,
+        "file_name": "AllstarFull_AZ.csv"
+    }
+
+    csv_tbl = CSVDataTable("people", connect_info, key_columns=["teamID", "playerID"])
+    find_tmp = {"teamID": "NYA"}
+
+    print(csv_tbl.find_by_template(find_tmp))
+
+    del_tmp = {"playerID": "gomezle01"}
+    print(csv_tbl.delete_by_template(del_tmp))
+
+    print(csv_tbl.find_by_template(find_tmp))
+
+# Raise exception when trying to update row with a primary key that already exists in table
+def t_csv_e5():
+    connect_info = {
+        "directory": data_dir,
+        "file_name": "AllstarFull_AZ.csv"
+    }
+
+    csv_tbl = CSVDataTable("people", connect_info, key_columns=["playerID"])
+
+    tmp = {"playerID": "gomezle01"}
+    new_values = {"playerID": "ferreri01"}
+    #csv_tbl.update_by_template(tmp,new_values)
+    csv_tbl.update_by_key(["gomezle01"],new_values)
+
+# Raise exception when trying to update row with a null primary key
+def t_csv_e6():
+    connect_info = {
+        "directory": data_dir,
+        "file_name": "AllstarFull_AZ.csv"
+    }
+
+    csv_tbl = CSVDataTable("people", connect_info, key_columns=["playerID"])
+
+    tmp = {"playerID": "gomezle01"}
+    new_values = {"playerID": ""}
+    csv_tbl.update_by_template(tmp,new_values)
+    #csv_tbl.update_by_key(["gomezle01"],new_values)
+
+# Raise exception when trying to insert row with a primary key that already exists in table
+def t_csv_e7():
+    connect_info = {
+        "directory": data_dir,
+        "file_name": "AllstarFull.csv"
+    }
+
+    csv_tbl = CSVDataTable("people", connect_info, key_columns=["playerID"])
+
+    new_values = {"playerID":"gomezle01","yearID": "2019"}
+    csv_tbl.insert(new_values)
+
+# Raise exception when trying to insert row with a primary key that is null
+def t_csv_e8():
+    connect_info = {
+        "directory": data_dir,
+        "file_name": "AllstarFull.csv"
+    }
+
+    csv_tbl = CSVDataTable("people", connect_info, key_columns=["teamID", "playerID"])
+
+    new_values = {"playerID":"","yearID": "2019"}
+    csv_tbl.insert(new_values)
 
 #RDB
 
@@ -274,17 +382,27 @@ def t_rdb_updbykey():
 
 #t_csv_load()
 #t_csv_match()
-#t_csv_matchall()
+#t_csv_findbytmp()
 #t_csv_key2tmp()
 #t_csv_primkey()
 #t_csv_delbytmp()
 #t_csv_updbytmp()
 #t_csv_updbykey()
 #t_csv_insert()
+
+#t_csv_e1()
+#t_csv_e2()
+#t_csv_e3()
+#t_csv_e4()
+#t_csv_e5()
+#t_csv_e6()
+#t_csv_e7()
+#t_csv_e8()
+
 #t_rdb_findbytmp()
 #t_rdb_findbykey()
 #t_rdb_delbytmp()
 #t_rdb_delbykey()
 #t_rdb_insert()
 #t_rdb_updbytmp()
-t_rdb_updbykey()
+#t_rdb_updbykey()
