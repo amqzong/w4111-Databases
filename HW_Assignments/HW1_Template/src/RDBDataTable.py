@@ -61,7 +61,11 @@ class RDBDataTable(BaseDataTable):
     def key_to_template(self,key):
         tmp = {}
         i = 0
+        if (len(key) < len(self._data["key_columns"])):
+            raise Exception("Null key.")
         for col in self._data["key_columns"]:
+            if not key[i]:
+                raise Exception("Null key.")
             tmp[col] = key[i]
             i+=1
         return tmp
@@ -74,7 +78,7 @@ class RDBDataTable(BaseDataTable):
         """
 
         if template is None or template == {}:
-            result = (None, None)
+            w_clause = ""
         else:
             args = []
             terms = []
@@ -172,6 +176,9 @@ class RDBDataTable(BaseDataTable):
         """
         sql = self.create_update(self._tbl, template, new_values)
         print(sql)
+        for k in new_values.keys():
+            if k in self._data["key_columns"] and new_values[k] is None:
+                raise Exception("Null key.")
         res = self._dbcur.execute(sql)
         return res
 

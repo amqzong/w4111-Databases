@@ -90,13 +90,9 @@ class CSVDataTable(BaseDataTable):
             for r in csv_d_rdr:
                 self._add_row(r)
 
-        #print(self._rows[0].get("playerID"))
-
-
         dict = {}
-        for i in range(0,1):#len(self._rows)):
+        for i in range(0,len(self._rows)):
             r = self._rows[i]
-            print(r.keys())
             t = ()
             if self._data["key_columns"] is not None:
                 for key in self._data["key_columns"]:
@@ -153,6 +149,9 @@ class CSVDataTable(BaseDataTable):
         :return: A list containing dictionaries. A dictionary is in the list representing each record
             that matches the template. The dictionary only contains the requested fields.
         """
+        if not template:
+            return self._rows
+
         result = []
         for r in self._rows:
             if self.matches_template(r,template):
@@ -166,9 +165,13 @@ class CSVDataTable(BaseDataTable):
         return result
 
     def key_to_template(self,key):
+        if (len(key) < len(self._data["key_columns"])):
+            raise Exception("Null key.")
         tmp = {}
         i = 0
         for col in self._data["key_columns"]:
+            if not key[i]:
+                raise Exception("Null key.")
             tmp[col] = key[i]
             i+=1
         return tmp
@@ -213,18 +216,28 @@ class CSVDataTable(BaseDataTable):
         :param new_values: New values to set for matching fields.
         :return: Number of rows updated.
         """
-        for k_p in self._data["key_columns"]:
-            for k_tmp in new_values.keys():
-                if k_tmp == k_p and self.find_by_template({k_tmp:new_values[k_tmp]}):
-                    print(self.find_by_template({k_tmp:new_values[k_tmp]}))
-                    raise Exception("Duplicate key.")
-                if k_tmp == k_p and not new_values[k_tmp]:
-                    raise Exception("Cannot change primary key to null.")
-
         count = 0
+
+        for k in new_values.keys():
+            if (k in self._data["key_columns"] and not new_values[k]):
+                raise Exception("Null key.")
+
         for r in self._rows:
             if self.matches_template(r, template):
-                # since this works, this means that r is a reference not a copy?
+                r_copy = r.copy()
+                for k in new_values.keys():
+                    r_copy[k] = new_values[k]
+                dict_k = {}
+                for k in self._data["key_columns"]:
+                    dict_k[k] = r_copy[k]
+
+                if self.find_by_template(dict_k):
+                    print(self.find_by_template(dict_k))
+                    raise Exception("Duplicate key.")
+
+        for r in self._rows:
+            if self.matches_template(r, template):
+                # since below code works, this means that r is a reference, not a copy
                 for f in new_values.keys():
                     r[f] = new_values[f]
                 print(r)
@@ -237,15 +250,18 @@ class CSVDataTable(BaseDataTable):
         :param new_record: A dictionary representing a row to add to the set of records.
         :return: None
         """
-        for k_p in self._data["key_columns"]:
-            found = False
-            for k_tmp in new_record.keys():
-                if k_tmp == k_p and self.find_by_template({k_tmp:new_record[k_tmp]}):
-                    raise Exception("Duplicate key.")
-                if k_tmp == k_p:
-                    found = True
-            if (found is not True):
-                raise Exception("Cannot insert new record without primary key.")
+        for k in new_record.keys():
+            if (k in self._data["key_columns"] and not new_record[k]):
+                raise Exception("Null key.")
+
+            dict_k = {}
+
+            for k in self._data["key_columns"]:
+                dict_k[k] = new_record[k]
+
+            if self.find_by_template(dict_k):
+                print(self.find_by_template(dict_k))
+                raise Exception("Duplicate key.")
 
         self._rows.append(new_record)
         return None
